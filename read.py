@@ -106,19 +106,7 @@ file_m3 = ID_DIR / 'Gait_medial_08_ID.sto'
 # =====================================================================
 def plotGait(files, label, sigmas=None, colors=None,
              trial_names=None, title=None, show_mean=False):
-    """Lädt eine Spalte aus mehreren .sto-Dateien, trimmt auf gleiche Länge
-    und plottet sie — optional mit Gauss-Filter und Mean±Std-Band.
 
-    Parameters
-    ----------
-    files       : Liste von Pfaden zu .sto-Dateien
-    label       : Spaltenname, z.B. 'knee_adduction_l_moment'
-    sigmas      : Gauss-Sigma pro Trial (0 = kein Filter). Default: alle 0.
-    colors      : Farbe pro Trial. Default: matplotlib tab-Palette.
-    trial_names : Legendenname pro Trial. Default: 'Trial 1', 'Trial 2', ...
-    title       : Plottitel. Default: das label.
-    show_mean   : Wenn True, zusätzlich Mittelwert + Std-Band einblenden.
-    """
     n = len(files)
     sigmas      = sigmas      or [0] * n
     colors      = colors      or [f'C{i}' for i in range(n)]

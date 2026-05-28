@@ -130,25 +130,25 @@ file_m3_analog = ANALOG_DIR / 'Gait_medial' / 'Gait_medial_08_analogdata.mot'
 # =====================================================================
 # TRIAL-DEFINITIONEN (Fenster + Files + Darstellung pro Aufnahme)
 # =====================================================================
-normal1 = {'name': 'Normal 1',  'window': (0.18, 0.86), 'color': 'tab:blue',
+normal1 = {'name': 'Normal 1',  'window': (0.18, 0.86), 'color': 'black',
            'inverse_dynamic': file_n1_id, 'inverse_kinematic': file_n1_ik, 'analog': file_n1_analog}
-normal2 = {'name': 'Normal 2',  'window': (0.13, 0.84), 'color': 'tab:orange',
+normal2 = {'name': 'Normal 2',  'window': (0.13, 0.84), 'color': 'tab:cyan',
            'inverse_dynamic': file_n2_id, 'inverse_kinematic': file_n2_ik, 'analog': file_n2_analog}
-normal3 = {'name': 'Normal 3',  'window': (0.15, 0.85), 'color': 'tab:green',
+normal3 = {'name': 'Normal 3',  'window': (0.15, 0.85), 'color': 'tab:pink',
            'inverse_dynamic': file_n3_id, 'inverse_kinematic': file_n3_ik, 'analog': file_n3_analog}
 
-lateral1 = {'name': 'Lateral 1', 'window': (0.16, 0.87), 'color': 'tab:blue',
+lateral1 = {'name': 'Lateral 1', 'window': (0.16, 0.87), 'color': 'black',
             'inverse_dynamic': file_l1_id, 'inverse_kinematic': file_l1_ik, 'analog': file_l1_analog}
-lateral2 = {'name': 'Lateral 2', 'window': (0.09, 0.79), 'color': 'tab:orange',
+lateral2 = {'name': 'Lateral 2', 'window': (0.09, 0.79), 'color': 'tab:cyan',
             'inverse_dynamic': file_l2_id, 'inverse_kinematic': file_l2_ik, 'analog': file_l2_analog}
-lateral3 = {'name': 'Lateral 3', 'window': (0.11, 0.81), 'color': 'tab:green',
+lateral3 = {'name': 'Lateral 3', 'window': (0.11, 0.81), 'color': 'tab:pink',
             'inverse_dynamic': file_l3_id, 'inverse_kinematic': file_l3_ik, 'analog': file_l3_analog}
 
-medial1 = {'name': 'Medial 1',  'window': (0.13, 0.84), 'color': 'tab:blue',
+medial1 = {'name': 'Medial 1',  'window': (0.13, 0.84), 'color': 'black',
            'inverse_dynamic': file_m1_id, 'inverse_kinematic': file_m1_ik, 'analog': file_m1_analog}
-medial2 = {'name': 'Medial 2',  'window': (0.14, 0.85), 'color': 'tab:orange',
+medial2 = {'name': 'Medial 2',  'window': (0.14, 0.85), 'color': 'tab:cyan',
            'inverse_dynamic': file_m2_id, 'inverse_kinematic': file_m2_ik, 'analog': file_m2_analog}
-medial3 = {'name': 'Medial 3',  'window': (0.15, 0.87), 'color': 'tab:green',
+medial3 = {'name': 'Medial 3',  'window': (0.15, 0.87), 'color': 'tab:pink',
            'inverse_dynamic': file_m3_id, 'inverse_kinematic': file_m3_ik, 'analog': file_m3_analog}
 
 # =====================================================================

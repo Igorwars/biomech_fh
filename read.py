@@ -128,123 +128,118 @@ file_m2_analog = ANALOG_DIR / 'Gait_medial' / 'Gait_medial_07_analogdata.mot'
 file_m3_analog = ANALOG_DIR / 'Gait_medial' / 'Gait_medial_08_analogdata.mot'
 
 # =====================================================================
-# PLOT-FUNKTION (lädt + trimmt + glättet + plottet)
+# TRIAL-DEFINITIONEN (Fenster + Files + Darstellung pro Aufnahme)
 # =====================================================================
-def plotGait(files, label, sigmas=None, colors=None,
-             trial_names=None, title=None, show_mean=False, only_mean=False,
-             ax=None, ylabel='Moment [Nm]'):
+normal1 = {'name': 'Normal 1',  'window': (0.18, 0.86), 'color': 'tab:blue',
+           'inverse_dynamic': file_n1_id, 'inverse_kinematic': file_n1_ik, 'analog': file_n1_analog}
+normal2 = {'name': 'Normal 2',  'window': (0.13, 0.84), 'color': 'tab:orange',
+           'inverse_dynamic': file_n2_id, 'inverse_kinematic': file_n2_ik, 'analog': file_n2_analog}
+normal3 = {'name': 'Normal 3',  'window': (0.15, 0.85), 'color': 'tab:green',
+           'inverse_dynamic': file_n3_id, 'inverse_kinematic': file_n3_ik, 'analog': file_n3_analog}
 
-    n = len(files)
-    sigmas      = sigmas      or [0] * n
-    colors      = colors      or [f'C{i}' for i in range(n)]
-    trial_names = trial_names or [f'Trial {i+1}' for i in range(n)]
+lateral1 = {'name': 'Lateral 1', 'window': (0.16, 0.87), 'color': 'tab:blue',
+            'inverse_dynamic': file_l1_id, 'inverse_kinematic': file_l1_ik, 'analog': file_l1_analog}
+lateral2 = {'name': 'Lateral 2', 'window': (0.09, 0.79), 'color': 'tab:orange',
+            'inverse_dynamic': file_l2_id, 'inverse_kinematic': file_l2_ik, 'analog': file_l2_analog}
+lateral3 = {'name': 'Lateral 3', 'window': (0.11, 0.81), 'color': 'tab:green',
+            'inverse_dynamic': file_l3_id, 'inverse_kinematic': file_l3_ik, 'analog': file_l3_analog}
 
-    # Daten laden + auf kürzeste Länge trimmen
-    signals = [getFromLabel(f, label)[1] for f in files]
-    n_min   = min(len(s) for s in signals)
-    signals = np.array([s[:n_min] for s in signals])
-    time    = getFromLabel(files[0], 'time')[1][:n_min]
+medial1 = {'name': 'Medial 1',  'window': (0.13, 0.84), 'color': 'tab:blue',
+           'inverse_dynamic': file_m1_id, 'inverse_kinematic': file_m1_ik, 'analog': file_m1_analog}
+medial2 = {'name': 'Medial 2',  'window': (0.14, 0.85), 'color': 'tab:orange',
+           'inverse_dynamic': file_m2_id, 'inverse_kinematic': file_m2_ik, 'analog': file_m2_analog}
+medial3 = {'name': 'Medial 3',  'window': (0.15, 0.87), 'color': 'tab:green',
+           'inverse_dynamic': file_m3_id, 'inverse_kinematic': file_m3_ik, 'analog': file_m3_analog}
 
-    # Falls kein ax übergeben -> neue Figure
+# =====================================================================
+# PLOT-FUNKTION (lädt + fenstert + normalisiert + glättet + plottet)
+# =====================================================================
+def plotGait(trials, label, source='inverse_dynamic', title=None,
+             show_mean=False, only_mean=False, ax=None,
+             ylabel='Moment [Nm]', n_points=101,
+             mean_color='black', mean_label='Mean',
+             show_std=True, std_color=None, std_label='Std',
+             legend=True):
+
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 6))
     else:
         fig = ax.figure
 
-    for signal, c, sigma, name in zip(signals, colors, sigmas, trial_names):
+    x = np.linspace(0, 100, n_points)
+    signals = []
+
+    for trial in trials:
+        file   = trial[source]
+        t0, t1 = trial['window']
+        sigma  = trial.get('sigma', 0)
+        color  = trial.get('color')
+        name   = trial['name']
+
+        t = getFromLabel(file, 'time')[1]
+        y = getFromLabel(file, label)[1]
+
+        mask  = (t >= t0) & (t <= t1)
+        t_sel = t[mask]
+        y_sel = y[mask]
+
+        # Zeit auf 0-100 % Gangzyklus normalisieren + auf gemeinsame Achse resamplen
+        pct    = (t_sel - t_sel[0]) / (t_sel[-1] - t_sel[0]) * 100
+        y_norm = np.interp(x, pct, y_sel)
+        signals.append(y_norm)
+
         if sigma > 0:
-            ax.plot(time, signal, color=c, alpha=0.25, linestyle='--')  # roh, blass
-            signal = gaussian_filter1d(signal, sigma=sigma)
-            name = f'{name} (σ={sigma})'
+            ax.plot(x, y_norm, color=color, alpha=0.25, linestyle='--')
+            y_plot = gaussian_filter1d(y_norm, sigma=sigma)
+            label_name = f'{name} (σ={sigma})'
+        else:
+            y_plot = y_norm
+            label_name = name
+
         if not only_mean:
-            ax.plot(time, signal, color=c, alpha=0.9, label=name)
+            ax.plot(x, y_plot, color=color, alpha=0.9, label=label_name)
 
     if show_mean:
+        signals = np.array(signals)
         mean = np.mean(signals, axis=0)
-        std  = np.std(signals,  axis=0)
-        ax.plot(time, mean, color='black', linewidth=2, label='Mean')
-        ax.fill_between(time, mean - std, mean + std,
-                        color='gray', alpha=0.2, label='Std Dev')
+        ax.plot(x, mean, color=mean_color, linewidth=2, label=mean_label)
+        if show_std:
+            std = np.std(signals, axis=0)
+            ax.fill_between(x, mean - std, mean + std,
+                            color=std_color or mean_color, alpha=0.2,
+                            label=std_label or None)
 
     ax.set_title(title or label)
-    ax.set_xlabel('Time [s]')
+    ax.set_xlabel('% Gangzyklus')
     ax.set_ylabel(ylabel)
-    ax.legend()
+    if legend:
+        ax.legend()
     ax.grid(True, alpha=0.3)
 
     return fig, ax
 
+def setAxLabels(axs, xlabel="", ylabel="", suptitle=None,
+                legend=False, legend_anchor=(0.5, -0.02), legend_bottom=0.22):
+    for ax in axs.flat:
+        ax.set(xlabel=xlabel, ylabel=ylabel)
 
-# =====================================================================
-# LABEL-REFERENZ (zum Nachschlagen, nicht ausgeführt)
-# =====================================================================
-"""ALLE LABELS:
-time	pelvis_tilt_moment	pelvis_list_moment	pelvis_rotation_moment	
-pelvis_tx_force	pelvis_ty_force	pelvis_tz_force	
+    # Hide x labels and tick labels for top plots and y ticks for right plots.
+    for ax in axs.flat:
+        ax.label_outer()
 
-hip_flexion_r_moment	hip_adduction_r_moment	hip_rotation_r_moment	
-hip_flexion_l_moment	hip_adduction_l_moment	hip_rotation_l_moment	
+    fig = axs.flat[0].figure
+    if suptitle:
+        fig.suptitle(suptitle, fontsize=14, fontweight='bold')
 
-lumbar_extension_moment	lumbar_bending_moment	lumbar_rotation_moment	
+    if legend:
+        handles, labels, seen = [], [], set()
+        for ax in axs.flat:
+            for h, l in zip(*ax.get_legend_handles_labels()):
+                if l and l not in seen:
+                    handles.append(h); labels.append(l); seen.add(l)
+        if handles:
+            fig.legend(handles, labels, loc='lower center',
+                       ncol=len(labels), bbox_to_anchor=legend_anchor)
+            fig.subplots_adjust(bottom=legend_bottom)
 
-knee_angle_r_moment	knee_rotation_r_moment	knee_adduction_r_moment	
-knee_angle_l_moment	knee_rotation_l_moment	knee_adduction_l_moment	
 
-ankle_angle_r_moment	ankle_angle_l_moment	
-
-subtalar_angle_r_moment	subtalar_angle_l_moment	
-
-mtp_angle_r_moment	mtp_angle_l_moment
-"""
-
-# =====================================================================
-# AUFRUF
-# =====================================================================
-
-fix, axs = plt.subplots(1, 3, figsize=(12, 18))
-
-fig3, ax3 = plotGait(
-    files       = [file_n1_id, file_n3_id],
-    label       = 'knee_rotation_r_moment',
-    sigmas      = [0, 0], #Gauss filter zum Glätten der Kurven (0 = kein Filter)
-    colors      = ['tab:blue', 'tab:green'],
-    trial_names = ['Normal 1', 'Normal 3'],
-    title       = 'Knee Rotation Moment — Normal Gait',
-    show_mean   = False,
-    only_mean   = False,
-    ax          = axs[0],
-    ylabel      = 'Moment in Nm', # Normalisiert auf Körpergewicht
-)
-
-fig4, ax4 = plotGait(
-    files       = [file_m1_id, file_m2_id, file_m3_id],
-    label       = 'knee_rotation_r_moment',
-    sigmas      = [0, 0, 0], #Gauss filter zum Glätten der Kurven (0 = kein Filter)
-    colors      = ['tab:blue', 'tab:orange', 'tab:green'],
-    trial_names = ['Medial 1', 'Medial 2', 'Medial 3'],
-    title       = 'Knee Rotation Moment — Medial Gait',
-    show_mean   = False,
-    ax          = axs[1],
-    ylabel      = 'Moment in Nm', # Normalisiert auf Körpergewicht
-)
-
-fig5, ax5 = plotGait(
-    files       = [file_l1_id, file_l2_id, file_l3_id],
-    label       = 'knee_rotation_r_moment',
-    sigmas      = [0]*3, #Gauss filter zum Glätten der Kurven (0 = kein Filter)
-    colors      = ['tab:blue', 'tab:orange', 'tab:green'],
-    trial_names = ['Lateral 1', 'Lateral 2', 'Lateral 3'],
-    title       = 'Knee Rotation Moment — Lateral Gait',
-    show_mean   = False,
-    ax          = axs[2],
-    ylabel      = 'Moment in Nm', # Normalisiert auf Körpergewicht
-)
-
-for ax in axs.flat:
-    ax.set(xlabel='Zeit in s', ylabel='Moment in Nm')
-
-# Hide x labels and tick labels for top plots and y ticks for right plots.
-for ax in axs.flat:
-    ax.label_outer()
-
-plt.show()

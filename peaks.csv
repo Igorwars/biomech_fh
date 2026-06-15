@@ -1,0 +1,73 @@
+Metrik,Bedingung,Trial,Peak1_0_50%,Peak2_50_100%
+Knee Adduction Moment,Normal,Normal 1,31.893864,19.286195
+Knee Adduction Moment,Normal,Normal 2,27.439458,17.681238
+Knee Adduction Moment,Normal,Normal 3,27.676629,17.365950
+Knee Adduction Moment,Normal,Mittelwert,29.003317,18.111128
+Knee Adduction Moment,Medial,Medial 1,20.838087,21.612849
+Knee Adduction Moment,Medial,Medial 2,21.650128,22.467014
+Knee Adduction Moment,Medial,Medial 3,21.387989,24.324255
+Knee Adduction Moment,Medial,Mittelwert,21.292068,22.801373
+Knee Adduction Moment,Lateral,Lateral 1,30.140334,15.705326
+Knee Adduction Moment,Lateral,Lateral 2,33.023725,-11.287469
+Knee Adduction Moment,Lateral,Lateral 3,30.141967,10.568328
+Knee Adduction Moment,Lateral,Mittelwert,31.102008,4.995395
+Hip Adduction Moment,Normal,Normal 1,-49.971589,-37.811936
+Hip Adduction Moment,Normal,Normal 2,-41.023044,-34.728563
+Hip Adduction Moment,Normal,Normal 3,-41.600629,-33.420811
+Hip Adduction Moment,Normal,Mittelwert,-44.198421,-35.320437
+Hip Adduction Moment,Medial,Medial 1,-37.480242,-35.290114
+Hip Adduction Moment,Medial,Medial 2,-36.916288,-31.784448
+Hip Adduction Moment,Medial,Medial 3,-37.885099,-38.791674
+Hip Adduction Moment,Medial,Mittelwert,-37.427210,-35.288745
+Hip Adduction Moment,Lateral,Lateral 1,-44.981482,-40.611747
+Hip Adduction Moment,Lateral,Lateral 2,-46.283507,-32.926610
+Hip Adduction Moment,Lateral,Lateral 3,-45.607868,-33.781542
+Hip Adduction Moment,Lateral,Mittelwert,-45.624286,-35.773300
+GRF Medial/Lateral,Normal,Normal 1,-101.630179,112.907697
+GRF Medial/Lateral,Normal,Normal 2,-92.924811,102.857596
+GRF Medial/Lateral,Normal,Normal 3,-92.570937,101.088208
+GRF Medial/Lateral,Normal,Mittelwert,-95.708642,105.617834
+GRF Medial/Lateral,Medial,Medial 1,-78.946675,96.293179
+GRF Medial/Lateral,Medial,Medial 2,-76.151042,99.690399
+GRF Medial/Lateral,Medial,Medial 3,-90.005322,95.125389
+GRF Medial/Lateral,Medial,Mittelwert,-81.701013,97.036322
+GRF Medial/Lateral,Lateral,Lateral 1,-93.667956,109.837815
+GRF Medial/Lateral,Lateral,Lateral 2,-111.326399,104.096166
+GRF Medial/Lateral,Lateral,Lateral 3,-109.999368,94.629957
+GRF Medial/Lateral,Lateral,Mittelwert,-104.997908,102.854646
+Knee Adduction Angle,Normal,Normal 1,-3.930977,-8.927826
+Knee Adduction Angle,Normal,Normal 2,-5.093966,-9.823291
+Knee Adduction Angle,Normal,Normal 3,-6.207560,-9.717045
+Knee Adduction Angle,Normal,Mittelwert,-5.077501,-9.489387
+Knee Adduction Angle,Medial,Medial 1,-4.966881,-8.088512
+Knee Adduction Angle,Medial,Medial 2,-5.214179,-7.975704
+Knee Adduction Angle,Medial,Medial 3,-4.287425,-9.571550
+Knee Adduction Angle,Medial,Mittelwert,-4.822828,-8.545255
+Knee Adduction Angle,Lateral,Lateral 1,-5.550760,-9.442394
+Knee Adduction Angle,Lateral,Lateral 2,-5.382301,-8.887292
+Knee Adduction Angle,Lateral,Lateral 3,-5.239210,-9.324039
+Knee Adduction Angle,Lateral,Mittelwert,-5.390757,-9.217908
+Hip Adduction Angle,Normal,Normal 1,16.484106,16.283399
+Hip Adduction Angle,Normal,Normal 2,16.199624,16.119187
+Hip Adduction Angle,Normal,Normal 3,16.095845,16.050207
+Hip Adduction Angle,Normal,Mittelwert,16.259858,16.150931
+Hip Adduction Angle,Medial,Medial 1,15.045457,14.706294
+Hip Adduction Angle,Medial,Medial 2,15.039977,13.989918
+Hip Adduction Angle,Medial,Medial 3,15.242445,15.037926
+Hip Adduction Angle,Medial,Mittelwert,15.109293,14.578046
+Hip Adduction Angle,Lateral,Lateral 1,17.501996,17.529224
+Hip Adduction Angle,Lateral,Lateral 2,16.849554,16.852097
+Hip Adduction Angle,Lateral,Lateral 3,15.788860,15.609360
+Hip Adduction Angle,Lateral,Mittelwert,16.713470,16.663560
+GRF Anterior/Posterior,Normal,Normal 1,-47.097337,-47.435882
+GRF Anterior/Posterior,Normal,Normal 2,-45.422525,-48.914707
+GRF Anterior/Posterior,Normal,Normal 3,-43.444818,-41.930384
+GRF Anterior/Posterior,Normal,Mittelwert,-45.321560,-46.093658
+GRF Anterior/Posterior,Medial,Medial 1,-35.284561,-24.469559
+GRF Anterior/Posterior,Medial,Medial 2,-35.070755,-19.382763
+GRF Anterior/Posterior,Medial,Medial 3,-33.681020,-28.941666
+GRF Anterior/Posterior,Medial,Mittelwert,-34.678779,-24.264663
+GRF Anterior/Posterior,Lateral,Lateral 1,-46.081758,-49.057243
+GRF Anterior/Posterior,Lateral,Lateral 2,-52.531570,-48.968157
+GRF Anterior/Posterior,Lateral,Lateral 3,-51.729797,-49.324503
+GRF Anterior/Posterior,Lateral,Mittelwert,-50.114375,-49.116634

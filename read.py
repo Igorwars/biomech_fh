@@ -5,7 +5,73 @@ import os
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from scipy.ndimage import gaussian_filter1d
+
+
+def integerTicks(ax):
+    """Ganzzahlige Achsen-Ticks – ausser der Wertebereich der Achse ist < 2."""
+    for axis, (lo, hi) in ((ax.xaxis, ax.get_xlim()), (ax.yaxis, ax.get_ylim())):
+        if abs(hi - lo) >= 2:
+            axis.set_major_locator(MaxNLocator(integer=True))
+
+
+# Richtungspaare (positiv = oben, negativ = unten) pro Winkel-Metrik.
+# Reihenfolge zaehlt: spezifischere Keys vor dem generischen 'angle'.
+# Falls oben/unten fuer ein Gelenk vertauscht sein sollte -> hier Paar drehen.
+ANGLE_DIRECTIONS = {
+    'adduction': ('Adduktion', 'Abduktion'),
+    'rotation':  ('Innenrotation', 'Außenrotation'),
+    'flexion':   ('Flexion', 'Extension'),
+    'subtalar':  ('Inversion', 'Eversion'),
+    'ankle':     ('Dorsalflexion', 'Plantarflexion'),
+    'angle':     ('Flexion', 'Extension'),
+}
+
+
+def angleDirections(label):
+    """(oben, unten)-Beschriftung fuer ein Winkel-Label, sonst None."""
+    for key, pair in ANGLE_DIRECTIONS.items():
+        if key in label:
+            return pair
+    return None
+
+
+# Richtungspaare (positiv = oben, negativ = unten) fuer Bodenreaktionskraefte.
+# Falls oben/unten vertauscht sein sollte -> hier Paar drehen.
+GRF_DIRECTIONS = {
+    'force_vy': ('Superior', 'Inferior'),
+    'force_vz': ('Medial', 'Lateral'),
+    'force_vx': ('Anterior', 'Posterior'),
+}
+
+
+def forceDirections(label):
+    """(oben, unten)-Beschriftung fuer ein GRF-Label, sonst None."""
+    for key, pair in GRF_DIRECTIONS.items():
+        if key in label:
+            return pair
+    return None
+
+
+def directionsFor(label, source):
+    """Waehlt das passende Richtungspaar je nach Datenquelle, sonst None."""
+    if source == 'inverse_kinematic':
+        return angleDirections(label)
+    if source == 'analog':
+        return forceDirections(label)
+    return None
+
+
+def directionLabels(ax, top, bottom):
+    """Beschriftet die Y-Achse oben/unten mit der Bewegungsrichtung (gedreht)."""
+    spec = getattr(ax, 'get_subplotspec', lambda: None)()
+    if spec is not None and not spec.is_first_col():
+        return  # bei geteilten Achsen nur an der linken Spalte
+    kw = dict(transform=ax.transAxes, rotation=90, ha='center',
+              fontsize=9, fontstyle='italic', color='0.35')
+    ax.text(-0.11, 1.0, top, va='top', **kw)
+    ax.text(-0.11, 0.0, bottom, va='bottom', **kw)
 
 
 # =====================================================================
@@ -159,7 +225,7 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
              ylabel='Moment [Nm]', n_points=101,
              mean_color='black', mean_label='Mean',
              show_std=True, std_color=None, std_label='Std',
-             legend=True):
+             legend=True, linestyles = None, colors = None):
 
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -168,13 +234,19 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
 
     x = np.linspace(0, 100, n_points)
     signals = []
-
+    i = 0
     for trial in trials:
+        i = i + 1
         file   = trial[source]
         t0, t1 = trial['window']
         sigma  = trial.get('sigma', 0)
         color  = trial.get('color')
+        if colors:
+            color = colors[i-1]
         name   = trial['name']
+        linestyle = '-'
+        if linestyles:
+            linestyle = linestyles[i-1]
 
         t = getFromLabel(file, 'time')[1]
         y = getFromLabel(file, label)[1]
@@ -197,7 +269,7 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
             label_name = name
 
         if not only_mean:
-            ax.plot(x, y_plot, color=color, alpha=0.9, label=label_name)
+            ax.plot(x, y_plot, color=color, alpha=0.9, label=label_name, linestyle=linestyle)
 
     if show_mean:
         signals = np.array(signals)
@@ -215,6 +287,10 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
     if legend:
         ax.legend()
     ax.grid(True, alpha=0.3)
+    integerTicks(ax)
+    pair = directionsFor(label, source)
+    if pair:
+        directionLabels(ax, *pair)
 
     return fig, ax
 

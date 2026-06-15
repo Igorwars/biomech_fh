@@ -5,14 +5,16 @@ import re
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
-from read import (plotGait, setAxLabels, getFromLabel,
-                  normal1, normal3,
+from read import (plotGait, setAxLabels, getFromLabel, integerTicks,
+                  directionsFor, directionLabels,
+                  normal1, normal2, normal3,
                   lateral1, lateral2, lateral3,
                   medial1, medial2, medial3)
 
 # Plots speichern unter <SAVE_DIR>/<slug>.png. Auf None setzen zum Deaktivieren.
 SAVE_DIR           = Path(__file__).parent / 'plots_out'
 SAVE_DIR_SECONDARY = Path(__file__).parent / 'plots_secondary'
+SAVE_DIR_MONO = Path(__file__).parent / 'plots_monocolor'
 
 def saveFig(fig, name, save_dir=None):
     target = save_dir if save_dir is not None else SAVE_DIR
@@ -29,34 +31,40 @@ def saveFig(fig, name, save_dir=None):
 # MAIN
 # =====================================================================
 def main():
-    """
+    
     #Kniegelenkmomente Flexion/ extension  normal, medial, lateral (mittelwerte und Standardabweichung) (1 Abb & 3 Graphen)
-    compareToOverlayPlots('knee_angle_l_moment', suptitle='Knee Angle Moment')
-    overlayPlot('knee_angle_l_moment', title='Knee Angle Moment — Overlay')
+    compareToOverlayPlots('knee_angle_l_moment', suptitle='Knee Flexion Moment')
+    overlayPlot('knee_angle_l_moment', title='Knee Flexion Moment')
+    nineLinesOverlay('knee_angle_l_moment', title='Knee Flexion Moment — All Trials')
 
     #Kniegelenkmomente Innen/ Außen Rotation    normal, medial, lateral (mittelwerte und Standardabweichung) (1 Abb & 3 Graphen)
     compareToOverlayPlots('knee_rotation_l_moment', suptitle='Knee Rotation Moment')
-    overlayPlot('knee_rotation_l_moment', title='Knee Rotation Moment — Overlay')
+    overlayPlot('knee_rotation_l_moment', title='Knee Rotation Moment')
+    nineLinesOverlay('knee_rotation_l_moment', title='Knee Rotation Moment — All Trials')
 
     #Kniegelenkmomente Abbduktion/adduktion  normal, medial, lateral (mittelwerte  und Standardabweichung) (1 Abb & 3 Graphen)
     compareToOverlayPlots('knee_adduction_l_moment', suptitle='Knee Adduction Moment')
-    overlayPlot('knee_adduction_l_moment', title='Knee Adduction Moment — Overlay')
+    overlayPlot('knee_adduction_l_moment', title='Knee Adduction Moment')
+    nineLinesOverlay('knee_adduction_l_moment', title='Knee Adduction Moment — All Trials')
 
     #Kniegelenkwinkel Flexion/ extension     normal, medial, lateral (mittelwerte und Standardabweichung) (1 Abb & 4 Graphen)
     compareToOverlayPlots('knee_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Flexion Angle')
-    overlayPlot('knee_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Flexion Angle — Overlay')
+    overlayPlot('knee_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Flexion Angle')
+    nineLinesOverlay('knee_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Flexion Angle — All Trials')
 
     #Kniegelenkwinkel Innen/ Außen Rotation  normal, medial, lateral (mittelwerte und Standardabweichung) (1 Abb & 4 Graphen)
     compareToOverlayPlots('knee_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Rotation Angle')
-    overlayPlot('knee_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Rotation Angle — Overlay')
+    overlayPlot('knee_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Rotation Angle')
+    nineLinesOverlay('knee_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Rotation Angle — All Trials')
 
     #Kniegelenkwinkel Abbduktion/adduktion   normal, medial, lateral (mittelwerte und Standardabweichung) (1 Abb & 4 Graphen)
     compareToOverlayPlots('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Adduction Angle')
-    overlayPlot('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Adduction Angle — Overlay')
+    overlayPlot('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Adduction Angle')
+    nineLinesOverlay('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Adduction Angle — All Trials')
 
     # ---- 3x3 Trial-Vergleich + 9-Trial-Overlay pro Metrik ----
-    compareTrials3x1('knee_angle_l_moment',     suptitle='Knee Angle Moment — Trials')
-    nineLinesOverlay('knee_angle_l_moment',     title='Knee Angle Moment — All Trials')
+    compareTrials3x1('knee_angle_l_moment',     suptitle='Knee Flexion Moment — Trials')
+    nineLinesOverlay('knee_angle_l_moment',     title='Knee Flexion Moment — All Trials')
 
     compareTrials3x1('knee_rotation_l_moment',  suptitle='Knee Rotation Moment — Trials')
     nineLinesOverlay('knee_rotation_l_moment',  title='Knee Rotation Moment — All Trials')
@@ -76,13 +84,13 @@ def main():
 
     # ---- Bodenreaktionskräfte: Mittelwerte + Std (4x1) und Overlay (1x1) ----
     compareToOverlayPlots('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='GRF Superior/Inferior')
-    overlayPlot          ('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='GRF Superior/Inferior — Overlay')
+    overlayPlot          ('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='GRF Superior/Inferior')
 
     compareToOverlayPlots('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='GRF Medial/Lateral')
-    overlayPlot          ('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='GRF Medial/Lateral — Overlay')
+    overlayPlot          ('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='GRF Medial/Lateral')
 
     compareToOverlayPlots('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='GRF Anterior/Posterior')
-    overlayPlot          ('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='GRF Anterior/Posterior — Overlay')
+    overlayPlot          ('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='GRF Anterior/Posterior')
 
     # ---- Bodenreaktionskräfte: Einzeltrials (3x1) und 9-Trial-Overlay (1x1) ----
     compareTrials3x1('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='GRF Superior/Inferior — Trials')
@@ -93,31 +101,31 @@ def main():
 
     compareTrials3x1('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='GRF Anterior/Posterior — Trials')
     nineLinesOverlay('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='GRF Anterior/Posterior — All Trials')
-    """
+    
     # ====================================================================
     # SEKUNDÄR-PLOTS: Hüfte + Sprunggelenk → plots_secondary/
     # ====================================================================
     sec = SAVE_DIR_SECONDARY
-
+    ""
     # ---- Hüftgelenkmomente Flexion/Extension ----
     compareToOverlayPlots('hip_flexion_l_moment',   suptitle='Hip Flexion Moment',   save_dir=sec)
-    overlayPlot          ('hip_flexion_l_moment',   title='Hip Flexion Moment — Overlay',   save_dir=sec)
+    overlayPlot          ('hip_flexion_l_moment',   title='Hip Flexion Moment',   save_dir=sec)
     # ---- Hüftgelenkmomente Innen/Außen Rotation ----
     compareToOverlayPlots('hip_rotation_l_moment',  suptitle='Hip Rotation Moment',  save_dir=sec)
-    overlayPlot          ('hip_rotation_l_moment',  title='Hip Rotation Moment — Overlay',  save_dir=sec)
+    overlayPlot          ('hip_rotation_l_moment',  title='Hip Rotation Moment',  save_dir=sec)
     # ---- Hüftgelenkmomente Abduktion/Adduktion ----
     compareToOverlayPlots('hip_adduction_l_moment', suptitle='Hip Adduction Moment', save_dir=sec)
-    overlayPlot          ('hip_adduction_l_moment', title='Hip Adduction Moment — Overlay', save_dir=sec)
+    overlayPlot          ('hip_adduction_l_moment', title='Hip Adduction Moment', save_dir=sec)
 
     # ---- Hüftgelenkwinkel Flexion/Extension ----
     compareToOverlayPlots('hip_flexion_l',   source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Flexion Angle',   save_dir=sec)
-    overlayPlot          ('hip_flexion_l',   source='inverse_kinematic', ylabel='Winkel in °', title='Hip Flexion Angle — Overlay',   save_dir=sec)
+    overlayPlot          ('hip_flexion_l',   source='inverse_kinematic', ylabel='Winkel in °', title='Hip Flexion Angle',   save_dir=sec)
     # ---- Hüftgelenkwinkel Innen/Außen Rotation ----
     compareToOverlayPlots('hip_rotation_l',  source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Rotation Angle',  save_dir=sec)
-    overlayPlot          ('hip_rotation_l',  source='inverse_kinematic', ylabel='Winkel in °', title='Hip Rotation Angle — Overlay',  save_dir=sec)
+    overlayPlot          ('hip_rotation_l',  source='inverse_kinematic', ylabel='Winkel in °', title='Hip Rotation Angle',  save_dir=sec)
     # ---- Hüftgelenkwinkel Abduktion/Adduktion ----
     compareToOverlayPlots('hip_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Adduction Angle', save_dir=sec)
-    overlayPlot          ('hip_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Hip Adduction Angle — Overlay', save_dir=sec)
+    overlayPlot          ('hip_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Hip Adduction Angle', save_dir=sec)
 
     # ---- Hüfte: Einzeltrials (3x1 + 9-Trial-Overlay) ----
     compareTrials3x1('hip_flexion_l_moment',   suptitle='Hip Flexion Moment — Trials',   save_dir=sec)
@@ -136,17 +144,17 @@ def main():
 
     # ---- Sprunggelenkmomente Plantar/Dorsiflexion ----
     compareToOverlayPlots('ankle_angle_l_moment',    suptitle='Ankle Flexion Moment',  save_dir=sec)
-    overlayPlot          ('ankle_angle_l_moment',    title='Ankle Flexion Moment — Overlay',  save_dir=sec)
+    overlayPlot          ('ankle_angle_l_moment',    title='Ankle Flexion Moment',  save_dir=sec)
     # ---- Sprunggelenkmomente Innen/Außen Rotation (Subtalar / Inv-Ev) ----
     compareToOverlayPlots('subtalar_angle_l_moment', suptitle='Subtalar Moment',       save_dir=sec)
-    overlayPlot          ('subtalar_angle_l_moment', title='Subtalar Moment — Overlay',       save_dir=sec)
+    overlayPlot          ('subtalar_angle_l_moment', title='Subtalar Moment',       save_dir=sec)
 
     # ---- Sprunggelenkwinkel Plantar/Dorsiflexion ----
     compareToOverlayPlots('ankle_angle_l',    source='inverse_kinematic', ylabel='Winkel in °', suptitle='Ankle Flexion Angle',  save_dir=sec)
-    overlayPlot          ('ankle_angle_l',    source='inverse_kinematic', ylabel='Winkel in °', title='Ankle Flexion Angle — Overlay',  save_dir=sec)
+    overlayPlot          ('ankle_angle_l',    source='inverse_kinematic', ylabel='Winkel in °', title='Ankle Flexion Angle',  save_dir=sec)
     # ---- Sprunggelenkwinkel Innen/Außen Rotation (Subtalar) ----
     compareToOverlayPlots('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Subtalar Angle',       save_dir=sec)
-    overlayPlot          ('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Subtalar Angle — Overlay',       save_dir=sec)
+    overlayPlot          ('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Subtalar Angle',       save_dir=sec)
 
     # ---- Sprunggelenk: Einzeltrials (3x1 + 9-Trial-Overlay) ----
     compareTrials3x1('ankle_angle_l_moment',    suptitle='Ankle Flexion Moment — Trials',  save_dir=sec)
@@ -158,6 +166,27 @@ def main():
     nineLinesOverlay('ankle_angle_l',    source='inverse_kinematic', ylabel='Winkel in °', title='Ankle Flexion Angle — All Trials', save_dir=sec)
     compareTrials3x1('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Subtalar Angle — Trials',       save_dir=sec)
     nineLinesOverlay('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Subtalar Angle — All Trials',      save_dir=sec)
+   
+    sec = SAVE_DIR_MONO
+    compareTrials3x1Monocolor('knee_angle_l_moment',     suptitle='Knee Flexion Moment — Trials',     save_dir=sec)
+    compareTrials3x1Monocolor('knee_rotation_l_moment',  suptitle='Knee Rotation Moment — Trials',  save_dir=sec)
+    compareTrials3x1Monocolor('knee_adduction_l_moment', suptitle='Knee Adduction Moment — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('knee_angle_l',     source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Flexion Angle — Trials',     save_dir=sec)
+    compareTrials3x1Monocolor('knee_rotation_l',  source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Rotation Angle — Trials',  save_dir=sec)
+    compareTrials3x1Monocolor('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Adduction Angle — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='GRF Vertikal — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='GRF Anterior/Posterior — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='GRF Medial/Lateral — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('hip_flexion_l_moment',   suptitle='Hip Flexion Moment — Trials',   save_dir=sec)
+    compareTrials3x1Monocolor('hip_rotation_l_moment',  suptitle='Hip Rotation Moment — Trials',  save_dir=sec)
+    compareTrials3x1Monocolor('hip_adduction_l_moment', suptitle='Hip Adduction Moment — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('hip_flexion_l',   source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Flexion Angle — Trials',   save_dir=sec)
+    compareTrials3x1Monocolor('hip_rotation_l',  source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Rotation Angle — Trials',  save_dir=sec)
+    compareTrials3x1Monocolor('hip_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Adduction Angle — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('ankle_angle_l_moment',    suptitle='Ankle Flexion Moment — Trials',  save_dir=sec)
+    compareTrials3x1Monocolor('subtalar_angle_l_moment', suptitle='Subtalar Moment — Trials',       save_dir=sec)
+    compareTrials3x1Monocolor('ankle_angle_l',    source='inverse_kinematic', ylabel='Winkel in °', suptitle='Ankle Flexion Angle — Trials',  save_dir=sec)
+    compareTrials3x1Monocolor('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Subtalar Angle — Trials',       save_dir=sec)
     
 # =====================================================================
 # LABEL-REFERENZ (zum Nachschlagen, nicht ausgeführt)
@@ -202,7 +231,7 @@ lumbar_extension	lumbar_bending	lumbar_rotation
 # =====================================================================
 # TRIAL-GRUPPEN
 # =====================================================================
-normals  = [normal1, normal3]
+normals  = [normal1, normal2, normal3]
 medials  = [medial1, medial2, medial3]
 laterals = [lateral1, lateral2, lateral3]
 
@@ -257,6 +286,22 @@ def compareTrials3x1(label, source='inverse_dynamic', ylabel='Moment in Nm', sup
     setAxLabels(axs, xlabel='% Gangzyklus', ylabel=ylabel, suptitle=suptitle)
     saveFig(fig, suptitle, save_dir=save_dir)
     plt.show()
+    
+def compareTrials3x1Monocolor(label, source='inverse_dynamic', ylabel='Moment in Nm', suptitle=None, save_dir=None):
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
+    conditions = [
+        (normals,  'Normal Gait'),
+        (medials,  'Medial Gait'),
+        (laterals, 'Lateral Gait'),
+    ]
+    i = 0
+    farben = [["black", "black", "black"], ["tab:cyan", "tab:cyan", "tab:cyan"], ["tab:pink", "tab:pink", "tab:pink"]]
+    for col, (trials, name) in enumerate(conditions):
+        i = i + 1
+        plotGait(trials, label, source=source, title=name, ax=axs[col], linestyles=['-', '--', ':'], colors=farben[i-1])
+    setAxLabels(axs, xlabel='% Gangzyklus', ylabel=ylabel, suptitle=suptitle)
+    saveFig(fig, suptitle, save_dir=save_dir)
+    plt.show()
 
 
 def nineLinesOverlay(label, source='inverse_dynamic', ylabel='Moment in Nm', title=None, save_dir=None):
@@ -274,6 +319,10 @@ def nineLinesOverlay(label, source='inverse_dynamic', ylabel='Moment in Nm', tit
     ax.set(xlabel='% Gangzyklus', ylabel=ylabel, title=title)
     ax.legend(ncol=3, loc='best')
     ax.grid(True, alpha=0.3)
+    integerTicks(ax)
+    pair = directionsFor(label, source)
+    if pair:
+        directionLabels(ax, *pair)
     saveFig(fig, title, save_dir=save_dir)
     plt.show()
 

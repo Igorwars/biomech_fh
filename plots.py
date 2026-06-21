@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
+import read
 from read import (plotGait, setAxLabels, getFromLabel, integerTicks,
                   directionsFor, directionLabels,
                   normal1, normal2, normal3,
@@ -31,7 +32,52 @@ def saveFig(fig, name, save_dir=None):
 # MAIN
 # =====================================================================
 def main():
-    
+    # =================================================================
+    # GRUPPIERTE OVERLAY-ABBILDUNGEN
+    # Pro Gelenk je eine Abbildung fuer Winkel und eine fuer Momente,
+    # Panels nebeneinander = die Freiheitsgrade (max 3). Jedes Panel ist
+    # ein Overlay (Normal/Medial/Lateral-Mittel) wie overlayPlot.
+    # =================================================================
+    DEG = 'Winkel in °'
+    NM  = 'Moment in Nm'
+    N   = 'Kraft in N'
+
+    # ---- Kniegelenk ----
+    overlayRow([('knee_angle_l',     'Flexion/Extension'),
+                ('knee_adduction_l', 'Adduktion/Abduktion'),
+                ('knee_rotation_l',  'Innen-/Außenrotation')],
+               source='inverse_kinematic', ylabel=DEG, suptitle='Knie — Winkel')
+    overlayRow([('knee_angle_l_moment',     'Flexion/Extension'),
+                ('knee_adduction_l_moment', 'Adduktion/Abduktion'),
+                ('knee_rotation_l_moment',  'Innen-/Außenrotation')],
+               source='inverse_dynamic', ylabel=NM, suptitle='Knie — Momente')
+
+    # ---- Sprunggelenk ----
+    overlayRow([('ankle_angle_l',    'Dorsal-/Plantarflexion'),
+                ('subtalar_angle_l', 'Inversion/Eversion')],
+               source='inverse_kinematic', ylabel=DEG, suptitle='Sprunggelenk — Winkel')
+    overlayRow([('ankle_angle_l_moment',    'Dorsal-/Plantarflexion'),
+                ('subtalar_angle_l_moment', 'Inversion/Eversion')],
+               source='inverse_dynamic', ylabel=NM, suptitle='Sprunggelenk — Momente')
+
+    # ---- Hüfte ----
+    overlayRow([('hip_flexion_l',   'Flexion/Extension'),
+                ('hip_adduction_l', 'Adduktion/Abduktion'),
+                ('hip_rotation_l',  'Innen-/Außenrotation')],
+               source='inverse_kinematic', ylabel=DEG, suptitle='Hüfte — Winkel')
+    overlayRow([('hip_flexion_l_moment',   'Flexion/Extension'),
+                ('hip_adduction_l_moment', 'Adduktion/Abduktion'),
+                ('hip_rotation_l_moment',  'Innen-/Außenrotation')],
+               source='inverse_dynamic', ylabel=NM, suptitle='Hüfte — Momente')
+
+    # ---- Bodenreaktionskräfte ----
+    overlayRow([('1_ground_force_vy', 'Superior/Inferior'),
+                ('1_ground_force_vz', 'Medial/Lateral'),
+                ('1_ground_force_vx', 'Anterior/Posterior')],
+               source='analog', ylabel=N, suptitle='Bodenreaktionskräfte')
+
+    #return  # ---- alter (ungenutzter) Plot-Block darunter bleibt erhalten ----
+
     #Kniegelenkmomente Flexion/ extension  normal, medial, lateral (mittelwerte und Standardabweichung) (1 Abb & 3 Graphen)
     compareToOverlayPlots('knee_angle_l_moment', suptitle='Knee Flexion Moment')
     overlayPlot('knee_angle_l_moment', title='Knee Flexion Moment')
@@ -249,6 +295,40 @@ def overlayPlot(label, source='inverse_dynamic', ylabel='Moment in Nm', title=No
     plt.show()
 
 
+def overlayRow(metrics, source='inverse_dynamic', ylabel='Moment in Nm',
+               suptitle=None, save_dir=None):
+    """Mehrere Overlay-Plots (Normal/Medial/Lateral-Mittel) nebeneinander.
+
+    metrics: Liste von (label, panel_title), max. 3 Panels.
+    Jedes Panel ist ein Overlay genau wie overlayPlot, je Freiheitsgrad eines.
+    """
+    conditions = [
+        (normals,  'black',    'Normal Gait'),
+        (medials,  'tab:cyan', 'Medial Gait'),
+        (laterals, 'tab:pink', 'Lateral Gait'),
+    ]
+    n = len(metrics)
+    fig, axs = plt.subplots(1, n, figsize=(6.5 * n, 5), squeeze=False)
+    axs = axs[0]
+    for ax, (label, ptitle) in zip(axs, metrics):
+        for trials, color, name in conditions:
+            plotGait(trials, label, source=source, ax=ax,
+                     show_mean=True, only_mean=True, mean_color=color,
+                     mean_label=name, show_std=True, std_label=None,
+                     legend=False, show_dir=False, ylabel='')
+        ax.set(title=ptitle, xlabel='% Gangzyklus')
+        pair = directionsFor(label, source)
+        if pair:
+            directionLabels(ax, *pair, only_first_col=False)
+    axs[0].set_ylabel(ylabel)
+    axs[-1].legend(loc='best')
+    if suptitle:
+        fig.suptitle(suptitle, fontsize=14, fontweight='bold')
+    fig.subplots_adjust(wspace=0.5)
+    saveFig(fig, suptitle, save_dir=save_dir)
+    plt.show()
+
+
 def compareToOverlayPlots(label, source='inverse_dynamic', ylabel='Moment in Nm', suptitle=None, save_dir=None):
     fig, axs = plt.subplots(1, 4, figsize=(20, 4), sharey=True)
     plotGait(normals,  label, source=source, title='Normal Gait',  ax=axs[0], show_mean=True, only_mean=True, mean_color='black',  mean_label='Normal Gait',  std_label=None, legend=False)
@@ -270,6 +350,9 @@ def loadNormalized(trial, label, source='inverse_dynamic', n_points=101):
     mask = (t >= t0) & (t <= t1)
     t_sel, y_sel = t[mask], y[mask]
     pct = (t_sel - t_sel[0]) / (t_sel[-1] - t_sel[0]) * 100
+    if read.MARKER_MODE:
+        # native Stuetzpunkte -> kein Resampling, keine Interpolation
+        return pct, y_sel
     x = np.linspace(0, 100, n_points)
     return x, np.interp(x, pct, y_sel)
 
@@ -315,8 +398,11 @@ def nineLinesOverlay(label, source='inverse_dynamic', ylabel='Moment in Nm', tit
     for trials, color in conditions:
         for trial, ls in zip(trials, linestyles):
             x, y = loadNormalized(trial, label, source)
-            ax.plot(x, y, color=color, linestyle=ls, label=trial['name'])
-    ax.set(xlabel='% Gangzyklus', ylabel=ylabel, title=title)
+            if read.MARKER_MODE:
+                ax.plot(x, y, color=color, label=trial['name'], **read.MARKER_KW)
+            else:
+                ax.plot(x, y, color=color, linestyle=ls, label=trial['name'])
+    ax.set(xlabel='% Gangzyklus', ylabel=ylabel, title=title, xlim=(0, 100))
     ax.legend(ncol=3, loc='best')
     ax.grid(True, alpha=0.3)
     integerTicks(ax)
@@ -327,7 +413,26 @@ def nineLinesOverlay(label, source='inverse_dynamic', ylabel='Moment in Nm', tit
     plt.show()
 
 
+def runRaw():
+    """Alle Plots nochmal als reine Messpunkte (keine lineare Interpolation)
+    in nicht-interpoliert/<unterordner>. Mittelwerte bleiben technisch
+    resampled, werden aber als Marker gezeichnet."""
+    global SAVE_DIR, SAVE_DIR_SECONDARY, SAVE_DIR_MONO
+    base  = Path(__file__).parent / 'nicht-interpoliert'
+    saved = (SAVE_DIR, SAVE_DIR_SECONDARY, SAVE_DIR_MONO)
+    SAVE_DIR           = base / 'plots_out'
+    SAVE_DIR_SECONDARY = base / 'plots_secondary'
+    SAVE_DIR_MONO      = base / 'plots_monocolor'
+    read.MARKER_MODE = True
+    try:
+        main()
+    finally:
+        read.MARKER_MODE = False
+        SAVE_DIR, SAVE_DIR_SECONDARY, SAVE_DIR_MONO = saved
+
+
 # =====================================================================
 # AUSFÜHRUNG
 # =====================================================================
-main()
+main()       # normal (linear interpoliert) -> plots_out / plots_secondary / plots_monocolor
+runRaw()     # nicht interpoliert (Messpunkte) -> nicht-interpoliert/<unterordner>

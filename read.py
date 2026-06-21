@@ -56,22 +56,29 @@ def forceDirections(label):
 
 def directionsFor(label, source):
     """Waehlt das passende Richtungspaar je nach Datenquelle, sonst None."""
-    if source == 'inverse_kinematic':
+    if source in ('inverse_kinematic', 'inverse_dynamic'):
+        # Momente teilen die Bewegungsrichtungen der Winkel (gleiche Label-Stems)
         return angleDirections(label)
     if source == 'analog':
         return forceDirections(label)
     return None
 
 
-def directionLabels(ax, top, bottom):
-    """Beschriftet die Y-Achse oben/unten mit der Bewegungsrichtung (gedreht)."""
-    spec = getattr(ax, 'get_subplotspec', lambda: None)()
-    if spec is not None and not spec.is_first_col():
-        return  # bei geteilten Achsen nur an der linken Spalte
+def directionLabels(ax, top, bottom, only_first_col=True):
+    """Beschriftet die Y-Achse oben/unten mit der Bewegungsrichtung (gedreht).
+
+    only_first_col=True: bei geteilten Achsen (sharey) nur an der linken Spalte.
+    Auf False setzen, wenn jedes Panel eine eigene Y-Achse hat (z.B. je
+    Freiheitsgrad ein eigenes Richtungspaar).
+    """
+    if only_first_col:
+        spec = getattr(ax, 'get_subplotspec', lambda: None)()
+        if spec is not None and not spec.is_first_col():
+            return
     kw = dict(transform=ax.transAxes, rotation=90, ha='center',
               fontsize=9, fontstyle='italic', color='0.35')
-    ax.text(-0.11, 1.0, top, va='top', **kw)
-    ax.text(-0.11, 0.0, bottom, va='bottom', **kw)
+    ax.text(-0.14, 1.0, top, va='top', **kw)
+    ax.text(-0.14, 0.0, bottom, va='bottom', **kw)
 
 
 # =====================================================================
@@ -220,12 +227,20 @@ medial3 = {'name': 'Medial 3',  'window': (0.15, 0.87), 'color': 'tab:pink',
 # =====================================================================
 # PLOT-FUNKTION (lädt + fenstert + normalisiert + glättet + plottet)
 # =====================================================================
+# MARKER_MODE = True -> Kurven als reine Messpunkte (keine Verbindungslinie,
+# Einzeltrials an Original-Stuetzpunkten = wirklich nicht interpoliert).
+# Mittelwerte bleiben technisch resampled (101 Punkte), aber als Marker.
+MARKER_MODE = False
+MARKER_KW      = dict(marker='.', linestyle='None', markersize=3)
+MARKER_KW_MEAN = dict(marker='o', linestyle='None', markersize=3)
+
+
 def plotGait(trials, label, source='inverse_dynamic', title=None,
              show_mean=False, only_mean=False, ax=None,
              ylabel='Moment [Nm]', n_points=101,
              mean_color='black', mean_label='Mean',
              show_std=True, std_color=None, std_label='Std',
-             legend=True, linestyles = None, colors = None):
+             legend=True, linestyles = None, colors = None, show_dir=True):
 
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -269,12 +284,19 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
             label_name = name
 
         if not only_mean:
-            ax.plot(x, y_plot, color=color, alpha=0.9, label=label_name, linestyle=linestyle)
+            if MARKER_MODE:
+                # native Stuetzpunkte als Marker -> keine lineare Interpolation
+                ax.plot(pct, y_sel, color=color, alpha=0.9, label=label_name, **MARKER_KW)
+            else:
+                ax.plot(x, y_plot, color=color, alpha=0.9, label=label_name, linestyle=linestyle)
 
     if show_mean:
         signals = np.array(signals)
         mean = np.mean(signals, axis=0)
-        ax.plot(x, mean, color=mean_color, linewidth=2, label=mean_label)
+        if MARKER_MODE:
+            ax.plot(x, mean, color=mean_color, label=mean_label, **MARKER_KW_MEAN)
+        else:
+            ax.plot(x, mean, color=mean_color, linewidth=2, label=mean_label)
         if show_std:
             std = np.std(signals, axis=0)
             ax.fill_between(x, mean - std, mean + std,
@@ -284,13 +306,15 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
     ax.set_title(title or label)
     ax.set_xlabel('% Gangzyklus')
     ax.set_ylabel(ylabel)
+    ax.set_xlim(0, 100)
     if legend:
         ax.legend()
     ax.grid(True, alpha=0.3)
     integerTicks(ax)
-    pair = directionsFor(label, source)
-    if pair:
-        directionLabels(ax, *pair)
+    if show_dir:
+        pair = directionsFor(label, source)
+        if pair:
+            directionLabels(ax, *pair)
 
     return fig, ax
 

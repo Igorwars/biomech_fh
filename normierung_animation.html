@@ -1,221 +1,399 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Normierung auf den Gangzyklus</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Normierung auf den Gangzyklus</title>
+  <style>html, body { margin: 0; padding: 8px; background: #fff; }</style>
 </head>
+
 <body>
 
-<!-- =================================================================== -->
-<!-- ==== START QUARTO-EMBED: alles hier drin in einen ```{=html}```-Block ==== -->
-<!-- =================================================================== -->
-<div class="norm-root">
-  <style>
-    .norm-root{
-      --ink:#1e293b; --muted:#64748b; --line:#e2e8f0;
-      --measured:#334155; --grid:#cbd5e1; --interp:#64748b;
-      --accent:#ea580c; --card:#ffffff; --bg:#f8fafc; --primary:#2563eb;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-      color:var(--ink); max-width:720px; margin:0 auto;
-    }
-    .norm-card{
-      background:var(--card); border:1px solid var(--line);
-      padding:22px 24px 20px;
-      box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06);
-    }
-    .norm-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:4px;}
-    .norm-title{font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:0;}
-    .norm-stepno{font-size:13px; font-weight:600; color:var(--primary);}
-    .norm-svgwrap{margin:8px 0 2px;}
-    .norm-root svg{display:block; width:100%; height:auto;}
-    .norm-layer{transition:opacity .45s ease;}
-    .norm-hidden{opacity:0; pointer-events:none;}
-    .norm-np{transform-box:fill-box; transform-origin:center; opacity:0; transform:scale(.3);
-           transition:opacity .35s ease, transform .35s cubic-bezier(.34,1.56,.64,1);}
-    .norm-np.in{opacity:1; transform:scale(1);}
-    .norm-desc{
-      background:var(--bg); border:1px solid var(--line);
-      padding:14px 16px; margin-top:6px; min-height:104px;
-    }
-    .norm-desc h4{margin:0 0 6px; font-size:15px;}
-    .norm-desc p{margin:0 0 10px; font-size:13.5px; line-height:1.55; color:#334155;}
-    .norm-formula{
-      font-family:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
-      font-size:13px; background:#0f172a; color:#e2e8f0;
-      padding:9px 12px; display:inline-block; white-space:nowrap;
-      max-width:100%; overflow-x:auto;
-    }
-    .norm-controls{display:flex; align-items:center; justify-content:space-between; margin-top:16px;}
-    .norm-dots{display:flex; gap:7px;}
-    .norm-dot{width:8px; height:8px; border-radius:50%; background:var(--line); transition:.25s;}
-    .norm-dot.on{background:var(--primary); transform:scale(1.25);}
-    .norm-btns{display:flex; gap:8px;}
-    .norm-btn{
-      font:inherit; font-size:14px; font-weight:600; cursor:pointer;
-      border:1px solid var(--line); background:#fff; color:var(--ink);
-      padding:8px 16px; transition:.18s;
-    }
-    .norm-btn:hover:not(:disabled){border-color:var(--primary); color:var(--primary);}
-    .norm-btn.primary{background:var(--primary); border-color:var(--primary); color:#fff;}
-    .norm-btn.primary:hover:not(:disabled){background:#1d4ed8;}
-    .norm-btn:disabled{opacity:.4; cursor:default;}
-  </style>
-
-  <div class="norm-card">
-    <div class="norm-head">
-      <p class="norm-title">Normierung &middot; 27&nbsp;&rarr;&nbsp;21 Werte</p>
-      <span class="norm-stepno" id="norm-stepno">Schritt 1 / 4</span>
-    </div>
-
-    <div class="norm-svgwrap">
-      <svg id="norm-svg" viewBox="0 0 680 360" role="img" aria-label="Visualisierung der Normierung"></svg>
-    </div>
-
-    <div class="norm-desc" id="norm-desc"></div>
-
-    <div class="norm-controls">
-      <div class="norm-dots">
-        <span class="norm-dot" data-d="0"></span>
-        <span class="norm-dot" data-d="1"></span>
-        <span class="norm-dot" data-d="2"></span>
-        <span class="norm-dot" data-d="3"></span>
-      </div>
-      <div class="norm-btns">
-        <button class="norm-btn" id="norm-prev">&lsaquo; Zurück</button>
-        <button class="norm-btn primary" id="norm-next">Weiter &rsaquo;</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-  (function(){
-    const NS="http://www.w3.org/2000/svg";
-    const svg=document.getElementById("norm-svg");
-    const W=680,H=360,m={l:54,r:22,t:26,b:46};
-    const iw=W-m.l-m.r, ih=H-m.t-m.b;
-
-    // --- Ausgangsdaten: 27 Messwerte -> Ziel: 21 Werte (0%,5%,...,100%) ---
-    const N_ORIG=27, N_NEW=21;
-    const ymin=0, ymax=72;
-    const X=p=> m.l + p/100*iw;
-    const Y=v=> m.t + (1-(v-ymin)/(ymax-ymin))*ih;
-
-    // gangähnlicher Verlauf, an 27 Stellen abgetastet
-    function f(p){
-      return 6
-        + 13*Math.exp(-Math.pow((p-16)/9,2))
-        + 56*Math.exp(-Math.pow((p-73)/13,2))
-        + 3*Math.sin(p/11);
-    }
-    const orig=[];
-    for(let i=0;i<N_ORIG;i++){ const p=i/(N_ORIG-1)*100; orig.push({p, v:f(p)}); }
-
-    function interp(p){
-      for(let i=1;i<N_ORIG;i++){
-        if(p<=orig[i].p){
-          const t=(p-orig[i-1].p)/(orig[i].p-orig[i-1].p);
-          return orig[i-1].v + t*(orig[i].v-orig[i-1].v);
-        }
+  <!-- =================================================================== -->
+  <!-- ==== START QUARTO-EMBED: alles hier drin in einen ```{=html}```-Block ==== -->
+  <!-- =================================================================== -->
+  <div class="norm-root">
+    <style>
+      .norm-root {
+        --ink: #1e293b;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --measured: #334155;
+        --grid: #cbd5e1;
+        --interp: #64748b;
+        --accent: #ea580c;
+        --card: #ffffff;
+        --bg: #f8fafc;
+        --primary: #2563eb;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        max-width: 720px;
+        margin: 0 auto;
       }
-      return orig[N_ORIG-1].v;
-    }
-    const neu=[];
-    for(let i=0;i<N_NEW;i++){ const p=i/(N_NEW-1)*100; neu.push({p, v:interp(p)}); }
 
-    function el(tag,attrs,parent){
-      const e=document.createElementNS(NS,tag);
-      for(const k in attrs) e.setAttribute(k,attrs[k]);
-      if(parent) parent.appendChild(e);
-      return e;
-    }
-    function txt(x,y,s,attrs){
-      const t=el("text",Object.assign({x,y},attrs)); t.textContent=s; return t;
-    }
+      .norm-card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 22px 24px 20px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 24px rgba(15, 23, 42, .06);
+      }
 
-    // ---------- statische Achsen ----------
-    const base=el("g",{},svg);
-    el("line",{x1:m.l,y1:Y(ymin),x2:m.l+iw,y2:Y(ymin),stroke:"#94a3b8","stroke-width":1.2},base);
-    el("line",{x1:m.l,y1:m.t,x2:m.l,y2:Y(ymin),stroke:"#94a3b8","stroke-width":1.2},base);
-    [0,20,40,60,80,100].forEach(p=>{
-      base.appendChild(txt(X(p),Y(ymin)+20,p+" %",{"text-anchor":"middle","font-size":11,fill:"#64748b"}));
-    });
-    [0,20,40,60].forEach(v=>{
-      base.appendChild(txt(m.l-8,Y(v)+4,String(v),{"text-anchor":"end","font-size":11,fill:"#64748b"}));
-    });
-    base.appendChild(txt(m.l+iw/2,H-4,"% Gangzyklus",{"text-anchor":"middle","font-size":12,fill:"#334155","font-weight":600}));
-    svg.appendChild(txt(15,m.t+ih/2,"Messwert",{"text-anchor":"middle","font-size":12,fill:"#334155","font-weight":600,transform:`rotate(-90 15 ${m.t+ih/2})`}));
+      .norm-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 4px;
+      }
 
-    // ---------- Layer: 21 senkrechte Linien (Zielraster) ----------
-    const gVert=el("g",{class:"norm-layer"},svg);
-    neu.forEach(d=>{
-      el("line",{x1:X(d.p),y1:m.t,x2:X(d.p),y2:Y(ymin),stroke:"#cbd5e1","stroke-width":1.2},gVert);
-    });
+      .norm-title {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0;
+      }
 
-    // ---------- Layer: Interpolationslinien (Verbindung der 27 Punkte) ----------
-    const gLine=el("g",{class:"norm-layer"},svg);
-    let d="";
-    orig.forEach((o,i)=>{ d+=(i?"L":"M")+X(o.p)+" "+Y(o.v)+" "; });
-    el("path",{d,fill:"none",stroke:"#64748b","stroke-width":1.6},gLine);
+      .norm-stepno {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary);
+      }
 
-    // ---------- Layer: 27 Ausgangspunkte ----------
-    const gOrig=el("g",{class:"norm-layer"},svg);
-    orig.forEach(o=>{ el("circle",{cx:X(o.p),cy:Y(o.v),r:3.6,fill:"#334155"},gOrig); });
+      .norm-svgwrap {
+        margin: 8px 0 2px;
+      }
 
-    // ---------- 21 neue Punkte (an den Schnittpunkten, mit Pop-in) ----------
-    const gNew=el("g",{},svg);
-    const newDots=neu.map((n,i)=>{
-      const c=el("circle",{cx:X(n.p),cy:Y(n.v),r:4.8,fill:"#ea580c",stroke:"#fff","stroke-width":1.6,class:"norm-np"},gNew);
-      c.style.transitionDelay=(i*32)+"ms";
-      return c;
-    });
+      .norm-root svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
 
-    // ---------- Texte ----------
-    const steps=[
-      {title:"Schritt 1 — Ausgangswerte",
-       text:"Wir starten mit den 27 gemessenen Ausgangswerten — zunächst nur die einzelnen Punkte, ohne Verbindungslinie.",
-       formula:"27 Messpunkte"},
-      {title:"Schritt 2 — Zielraster festlegen (21 Werte)",
-       text:"An den 21 gewünschten Stützstellen (0 %, 5 %, …, 100 %) ziehen wir senkrechte Linien durch die Grafik. Auf genau diese 21 Werte wollen wir herunterskalieren.",
-       formula:"gangzyklus = np.linspace(0, 100, 21)"},
-      {title:"Schritt 3 — Interpolieren",
-       text:"Wir verbinden die Ausgangswerte mit geraden Linien. An den Schnittpunkten mit den senkrechten Linien werden die 21 neuen Punkte eingeschoben.",
-       formula:"messwert_normiert = np.interp(gangzyklus, prozent, messwert)"},
-      {title:"Schritt 4 — Ergebnis",
-       text:"Zum Schluss blenden wir Ausgangspunkte und Hilfslinien aus — übrig bleiben die 21 normierten Werte, gleichmäßig über den Gangzyklus verteilt.",
-       formula:"21 normierte Werte"}
-    ];
+      .norm-layer {
+        transition: opacity .45s ease;
+      }
 
-    // ---------- Steuerung ----------
-    let cur=0;
-    const desc=document.getElementById("norm-desc");
-    const stepno=document.getElementById("norm-stepno");
-    const prev=document.getElementById("norm-prev");
-    const next=document.getElementById("norm-next");
-    const dots=[...document.querySelectorAll(".norm-dot")];
+      .norm-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
 
-    function show(n){
-      cur=Math.max(0,Math.min(3,n));
-      gOrig.classList.toggle("norm-hidden", cur===3);
-      gVert.classList.toggle("norm-hidden", !(cur===1||cur===2));
-      gLine.classList.toggle("norm-hidden", cur!==2);
-      newDots.forEach(c=>c.classList.toggle("in", cur>=2));
-      const s=steps[cur];
-      desc.innerHTML=`<h4>${s.title}</h4><p>${s.text}</p><span class="norm-formula">${s.formula}</span>`;
-      stepno.textContent=`Schritt ${cur+1} / 4`;
-      dots.forEach((d,i)=>d.classList.toggle("on",i===cur));
-      prev.disabled=(cur===0);
-      next.disabled=(cur===3);
-    }
-    prev.addEventListener("click",()=>show(cur-1));
-    next.addEventListener("click",()=>show(cur+1));
-    show(0);
-  })();
-  </script>
-</div>
-<!-- =================================================================== -->
-<!-- ==== ENDE QUARTO-EMBED ==== -->
-<!-- =================================================================== -->
+      .norm-np {
+        transform-box: fill-box;
+        transform-origin: center;
+        opacity: 0;
+        transform: scale(.3);
+        transition: opacity .35s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
+      }
+
+      .norm-np.in {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .norm-desc {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        padding: 14px 16px;
+        margin-top: 6px;
+        min-height: 104px;
+      }
+
+      .norm-desc h4 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+
+      .norm-desc p {
+        margin: 0 0 10px;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: #334155;
+      }
+
+      .norm-formula {
+        font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+        font-size: 13px;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 9px 12px;
+        display: inline-block;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow-x: auto;
+      }
+
+      .norm-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+      }
+
+      .norm-dots {
+        display: flex;
+        gap: 7px;
+      }
+
+      .norm-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--line);
+        transition: .25s;
+      }
+
+      .norm-dot.on {
+        background: var(--primary);
+        transform: scale(1.25);
+      }
+
+      .norm-btns {
+        display: flex;
+        gap: 8px;
+      }
+
+      .norm-btn {
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 8px 16px;
+        transition: .18s;
+      }
+
+      .norm-btn:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .norm-btn.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+
+      .norm-btn.primary:hover:not(:disabled) {
+        background: #1d4ed8;
+      }
+
+      .norm-btn:disabled {
+        opacity: .4;
+        cursor: default;
+      }
+    </style>
+
+    <div class="norm-card">
+      <div class="norm-head">
+        <p class="norm-title">Normierung &middot; 27&nbsp;&rarr;&nbsp;21 Werte</p>
+        <span class="norm-stepno" id="norm-stepno">Schritt 1 / 4</span>
+      </div>
+
+      <div class="norm-svgwrap">
+        <svg id="norm-svg" viewBox="0 0 680 360" role="img" aria-label="Visualisierung der Normierung"></svg>
+      </div>
+
+      <div class="norm-desc" id="norm-desc"></div>
+
+      <div class="norm-controls">
+        <div class="norm-dots">
+          <span class="norm-dot" data-d="0"></span>
+          <span class="norm-dot" data-d="1"></span>
+          <span class="norm-dot" data-d="2"></span>
+          <span class="norm-dot" data-d="3"></span>
+        </div>
+        <div class="norm-btns">
+          <button class="norm-btn" id="norm-prev">&lsaquo; Zurück</button>
+          <button class="norm-btn primary" id="norm-next">Weiter &rsaquo;</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const svgNamespace = "http://www.w3.org/2000/svg";
+        const diagramm = document.getElementById("norm-svg");
+
+        // Abmessungen der Zeichenfläche und Ränder
+        const breite = 680, hoehe = 360;
+        const rand = { links: 54, rechts: 22, oben: 26, unten: 46 };
+        const zeichenBreite = breite - rand.links - rand.rechts;
+        const zeichenHoehe = hoehe - rand.oben - rand.unten;
+
+        // Ausgangsdaten: 27 Messwerte -> Ziel: 21 Werte (0 %, 5 %, ... 100 %)
+        const anzahlAusgang = 27;
+        const anzahlZiel = 21;
+        const wertMin = 0, wertMax = 72;
+
+        // Umrechnung von Daten in Pixelkoordinaten
+        const prozentZuX = (prozent) => rand.links + prozent / 100 * zeichenBreite;
+        const wertZuY = (wert) => rand.oben + (1 - (wert - wertMin) / (wertMax - wertMin)) * zeichenHoehe;
+
+        // gangähnlicher Beispielverlauf, an 27 Stellen abgetastet
+        function beispielKurve(prozent) {
+          return 6
+            + 13 * Math.exp(-Math.pow((prozent - 16) / 9, 2))
+            + 56 * Math.exp(-Math.pow((prozent - 73) / 13, 2))
+            + 3 * Math.sin(prozent / 11);
+        }
+
+        const ausgangsPunkte = [];
+        for (let i = 0; i < anzahlAusgang; i++) {
+          const prozent = i / (anzahlAusgang - 1) * 100;
+          ausgangsPunkte.push({ prozent, wert: beispielKurve(prozent) });
+        }
+
+        // lineare Interpolation zwischen den Ausgangspunkten
+        function interpoliere(prozent) {
+          for (let i = 1; i < anzahlAusgang; i++) {
+            if (prozent <= ausgangsPunkte[i].prozent) {
+              const anteil = (prozent - ausgangsPunkte[i - 1].prozent)
+                / (ausgangsPunkte[i].prozent - ausgangsPunkte[i - 1].prozent);
+              return ausgangsPunkte[i - 1].wert
+                + anteil * (ausgangsPunkte[i].wert - ausgangsPunkte[i - 1].wert);
+            }
+          }
+          return ausgangsPunkte[anzahlAusgang - 1].wert;
+        }
+
+        const zielPunkte = [];
+        for (let i = 0; i < anzahlZiel; i++) {
+          const prozent = i / (anzahlZiel - 1) * 100;
+          zielPunkte.push({ prozent, wert: interpoliere(prozent) });
+        }
+
+        // kleine Helfer zum Erzeugen von SVG-Elementen
+        function erstelleElement(tag, attribute, elternElement) {
+          const element = document.createElementNS(svgNamespace, tag);
+          for (const schluessel in attribute) element.setAttribute(schluessel, attribute[schluessel]);
+          if (elternElement) elternElement.appendChild(element);
+          return element;
+        }
+        function erstelleText(x, y, inhalt, attribute) {
+          const element = erstelleElement("text", Object.assign({ x, y }, attribute));
+          element.textContent = inhalt;
+          return element;
+        }
+
+        // ---------- Achsen ----------
+        const achsen = erstelleElement("g", {}, diagramm);
+        erstelleElement("line", { x1: rand.links, y1: wertZuY(wertMin), x2: rand.links + zeichenBreite, y2: wertZuY(wertMin), stroke: "#94a3b8", "stroke-width": 1.2 }, achsen);
+        erstelleElement("line", { x1: rand.links, y1: rand.oben, x2: rand.links, y2: wertZuY(wertMin), stroke: "#94a3b8", "stroke-width": 1.2 }, achsen);
+        [0, 20, 40, 60, 80, 100].forEach((prozent) => {
+          achsen.appendChild(erstelleText(prozentZuX(prozent), wertZuY(wertMin) + 20, prozent + " %", { "text-anchor": "middle", "font-size": 11, fill: "#64748b" }));
+        });
+        [0, 20, 40, 60].forEach((wert) => {
+          achsen.appendChild(erstelleText(rand.links - 8, wertZuY(wert) + 4, String(wert), { "text-anchor": "end", "font-size": 11, fill: "#64748b" }));
+        });
+        achsen.appendChild(erstelleText(rand.links + zeichenBreite / 2, hoehe - 4, "% Gangzyklus", { "text-anchor": "middle", "font-size": 12, fill: "#334155", "font-weight": 600 }));
+        diagramm.appendChild(erstelleText(15, rand.oben + zeichenHoehe / 2, "Messwert", { "text-anchor": "middle", "font-size": 12, fill: "#334155", "font-weight": 600, transform: `rotate(-90 15 ${rand.oben + zeichenHoehe / 2})` }));
+
+        // ---------- 21 senkrechte Linien (Zielraster) ----------
+        const senkrechteLinien = erstelleElement("g", { class: "norm-layer" }, diagramm);
+        zielPunkte.forEach((punkt) => {
+          erstelleElement("line", { x1: prozentZuX(punkt.prozent), y1: rand.oben, x2: prozentZuX(punkt.prozent), y2: wertZuY(wertMin), stroke: "#cbd5e1", "stroke-width": 1.2 }, senkrechteLinien);
+        });
+
+        // ---------- Interpolationslinie (Verbindung der 27 Ausgangspunkte) ----------
+        const verbindungsLinie = erstelleElement("g", { class: "norm-layer" }, diagramm);
+        let pfad = "";
+        ausgangsPunkte.forEach((punkt, i) => {
+          pfad += (i ? "L" : "M") + prozentZuX(punkt.prozent) + " " + wertZuY(punkt.wert) + " ";
+        });
+        erstelleElement("path", { d: pfad, fill: "none", stroke: "#64748b", "stroke-width": 1.6 }, verbindungsLinie);
+
+        // ---------- 27 Ausgangspunkte ----------
+        const ausgangsGruppe = erstelleElement("g", { class: "norm-layer" }, diagramm);
+        ausgangsPunkte.forEach((punkt) => {
+          erstelleElement("circle", { cx: prozentZuX(punkt.prozent), cy: wertZuY(punkt.wert), r: 3.6, fill: "#334155" }, ausgangsGruppe);
+        });
+
+        // ---------- 21 neue Punkte (an den Schnittpunkten, mit Pop-in) ----------
+        const zielGruppe = erstelleElement("g", {}, diagramm);
+        const zielKreise = zielPunkte.map((punkt, i) => {
+          const kreis = erstelleElement("circle", { cx: prozentZuX(punkt.prozent), cy: wertZuY(punkt.wert), r: 4.8, fill: "#ea580c", stroke: "#fff", "stroke-width": 1.6, class: "norm-np" }, zielGruppe);
+          kreis.style.transitionDelay = (i * 32) + "ms";
+          return kreis;
+        });
+
+        // ---------- Texte der vier Schritte ----------
+        const schritte = [
+          {
+            titel: "Schritt 1 — Ausgangswerte",
+            text: "Wir starten mit den 27 gemessenen Ausgangswerten — zunächst nur die einzelnen Punkte, ohne Verbindungslinie.",
+            formel: "27 Messpunkte"
+          },
+          {
+            titel: "Schritt 2 — Zielraster festlegen (21 Werte)",
+            text: "An den 21 gewünschten Stützstellen (0 %, 5 %, …, 100 %) ziehen wir senkrechte Linien durch die Grafik. Auf genau diese 21 Werte wollen wir herunterskalieren.",
+            formel: "gangzyklus = np.linspace(0, 100, 21)"
+          },
+          {
+            titel: "Schritt 3 — Interpolieren",
+            text: "Wir verbinden die Ausgangswerte mit geraden Linien. An den Schnittpunkten mit den senkrechten Linien werden die 21 neuen Punkte eingeschoben.",
+            formel: "messwert_normiert = np.interp(gangzyklus, prozent, messwert)"
+          },
+          {
+            titel: "Schritt 4 — Ergebnis",
+            text: "Zum Schluss blenden wir Ausgangspunkte und Hilfslinien aus — übrig bleiben die 21 normierten Werte, gleichmäßig über den Gangzyklus verteilt.",
+            formel: "21 normierte Werte"
+          }
+        ];
+
+        // ---------- Steuerung ----------
+        let aktuellerSchritt = 0;
+        const beschreibung = document.getElementById("norm-desc");
+        const schrittAnzeige = document.getElementById("norm-stepno");
+        const zurueckButton = document.getElementById("norm-prev");
+        const weiterButton = document.getElementById("norm-next");
+        const fortschrittsPunkte = [...document.querySelectorAll(".norm-dot")];
+
+        function zeigeSchritt(nummer) {
+          aktuellerSchritt = Math.max(0, Math.min(3, nummer));
+
+          ausgangsGruppe.classList.toggle("norm-hidden", aktuellerSchritt === 3);
+          senkrechteLinien.classList.toggle("norm-hidden", !(aktuellerSchritt === 1 || aktuellerSchritt === 2));
+          verbindungsLinie.classList.toggle("norm-hidden", aktuellerSchritt !== 2);
+          zielKreise.forEach((kreis) => kreis.classList.toggle("in", aktuellerSchritt >= 2));
+
+          const schritt = schritte[aktuellerSchritt];
+          beschreibung.innerHTML = `<h4>${schritt.titel}</h4><p>${schritt.text}</p><span class="norm-formula">${schritt.formel}</span>`;
+          schrittAnzeige.textContent = `Schritt ${aktuellerSchritt + 1} / 4`;
+          fortschrittsPunkte.forEach((punkt, i) => punkt.classList.toggle("on", i === aktuellerSchritt));
+
+          zurueckButton.disabled = (aktuellerSchritt === 0);
+          weiterButton.disabled = (aktuellerSchritt === 3);
+        }
+
+        zurueckButton.addEventListener("click", () => zeigeSchritt(aktuellerSchritt - 1));
+        weiterButton.addEventListener("click", () => zeigeSchritt(aktuellerSchritt + 1));
+        zeigeSchritt(0);
+
+        // Höhe an die einbettende Seite melden, damit das iframe automatisch passt
+        function meldeHoehe() {
+          const hoeheGesamt = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight
+          ) + 4;
+          parent.postMessage({ normHoehe: hoeheGesamt }, "*");
+        }
+        // ResizeObserver meldet sofort und bei jeder Layout-Änderung (z. B. nach Font-Laden)
+        new ResizeObserver(meldeHoehe).observe(document.body);
+        window.addEventListener("load", meldeHoehe);
+        meldeHoehe();
+      })();
+    </script>
+  </div>
+  <!-- =================================================================== -->
+  <!-- ==== ENDE QUARTO-EMBED ==== -->
+  <!-- =================================================================== -->
 
 </body>
+
 </html>

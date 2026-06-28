@@ -17,6 +17,9 @@ SAVE_DIR           = Path(__file__).parent / 'plots_out'
 SAVE_DIR_SECONDARY = Path(__file__).parent / 'plots_secondary'
 SAVE_DIR_MONO = Path(__file__).parent / 'plots_monocolor'
 
+SAVE_DIR_FINAL = Path(__file__).parent / 'plots_final'
+SAVE_DIR_FINAL_OVERLAYS = SAVE_DIR_FINAL / 'overlays'
+
 def saveFig(fig, name, save_dir=None):
     target = save_dir if save_dir is not None else SAVE_DIR
     if target is None or not name:
@@ -26,6 +29,62 @@ def saveFig(fig, name, save_dir=None):
     fig.savefig(target / f'{slug}.png', dpi=150, bbox_inches='tight')
 
 
+"""
+Ground reaction forces (6 Stück)
+Ankle flexion angle / moment / mit mittelwert, alle trials -> 4 Images
+subtalar angle / moment / mit mittelwert, alle trials -> 4 Images
+Knee flexion angle / moment / mit mittelwert, alle trials -> 4 Images
+Knee adduction angle / moment / mit mittelwert, alle trials  -> 4 Images
+Knee rotation angle / moment / mit mittelwert, alle trials  -> 4 Images
+Hip flexion angle / moment / mit mittelwert, alle trials -> 4 Images
+Hip adduction angle / moment / mit mittelwert, alle trials -> 4 Images
+Hip rotation angle / moment / mit mittelwert, alle trials -> 4 Images
+"""
+def mostImportantPlots():
+    #Ground reaction forces (6 Stück)
+    compareToOverlayPlots('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Superior/Inferior', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Superior/Inferior', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Anterior/Posterior', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Anterior/Posterior', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Medial/Lateral', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Medial/Lateral', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    #Knee angles (3x4)
+    compareToOverlayPlots('knee_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Flexion Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('knee_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Flexion Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('knee_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Rotation Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('knee_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Rotation Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Adduction Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Knee Adduction Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('knee_angle_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Knee Flexion Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('knee_angle_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Knee Flexion Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('knee_rotation_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Knee Rotation Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('knee_rotation_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Knee Rotation Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('knee_adduction_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Knee Adduction Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('knee_adduction_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Knee Adduction Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    
+    #Ankle angles (2x4)
+    compareToOverlayPlots('ankle_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Ankle Flexion Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('ankle_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Ankle Flexion Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Subtalar Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('subtalar_angle_l', source='inverse_kinematic', ylabel='Winkel in °', title='Subtalar Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('ankle_angle_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Ankle Flexion Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('ankle_angle_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Ankle Flexion Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('subtalar_angle_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Subtalar Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('subtalar_angle_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Subtalar Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    
+    #Hip angles (3x4)
+    compareToOverlayPlots('hip_flexion_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Flexion Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('hip_flexion_l', source='inverse_kinematic', ylabel='Winkel in °', title='Hip Flexion Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('hip_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Rotation Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('hip_rotation_l', source='inverse_kinematic', ylabel='Winkel in °', title='Hip Rotation Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('hip_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Hip Adduction Angle', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('hip_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', title='Hip Adduction Angle', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('hip_flexion_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Hip Flexion Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('hip_flexion_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Hip Flexion Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('hip_rotation_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Hip Rotation Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('hip_rotation_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Hip Rotation Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
+    compareToOverlayPlots('hip_adduction_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', suptitle='Hip Adduction Moment', save_dir=SAVE_DIR_FINAL)
+    overlayPlot          ('hip_adduction_l_moment', source='inverse_dynamic', ylabel='Moment in Nm', title='Hip Adduction Moment', save_dir=SAVE_DIR_FINAL_OVERLAYS)
 
 
 # =====================================================================
@@ -72,8 +131,8 @@ def main():
 
     # ---- Bodenreaktionskräfte ----
     overlayRow([('1_ground_force_vy', 'Superior/Inferior'),
-                ('1_ground_force_vz', 'Medial/Lateral'),
-                ('1_ground_force_vx', 'Anterior/Posterior')],
+                ('1_ground_force_vz', 'Anterior/Posterior'),
+                ('1_ground_force_vx', 'Medial/Lateral')],
                source='analog', ylabel=N, suptitle='Bodenreaktionskräfte')
 
     #return  # ---- alter (ungenutzter) Plot-Block darunter bleibt erhalten ----
@@ -129,24 +188,24 @@ def main():
     
 
     # ---- Bodenreaktionskräfte: Mittelwerte + Std (4x1) und Overlay (1x1) ----
-    compareToOverlayPlots('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='GRF Superior/Inferior')
-    overlayPlot          ('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='GRF Superior/Inferior')
+    compareToOverlayPlots('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Superior/Inferior')
+    overlayPlot          ('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Superior/Inferior')
 
-    compareToOverlayPlots('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='GRF Medial/Lateral')
-    overlayPlot          ('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='GRF Medial/Lateral')
+    compareToOverlayPlots('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Anterior/Posterior')
+    overlayPlot          ('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Anterior/Posterior')
 
-    compareToOverlayPlots('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='GRF Anterior/Posterior')
-    overlayPlot          ('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='GRF Anterior/Posterior')
+    compareToOverlayPlots('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Medial/Lateral')
+    overlayPlot          ('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Medial/Lateral')
 
     # ---- Bodenreaktionskräfte: Einzeltrials (3x1) und 9-Trial-Overlay (1x1) ----
-    compareTrials3x1('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='GRF Superior/Inferior — Trials')
-    nineLinesOverlay('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='GRF Superior/Inferior — All Trials')
+    compareTrials3x1('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Superior/Inferior — Trials')
+    nineLinesOverlay('1_ground_force_vy', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Superior/Inferior — All Trials')
 
-    compareTrials3x1('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='GRF Medial/Lateral — Trials')
-    nineLinesOverlay('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='GRF Medial/Lateral — All Trials')
+    compareTrials3x1('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Anterior/Posterior — Trials')
+    nineLinesOverlay('1_ground_force_vz', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Anterior/Posterior — All Trials')
 
-    compareTrials3x1('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='GRF Anterior/Posterior — Trials')
-    nineLinesOverlay('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='GRF Anterior/Posterior — All Trials')
+    compareTrials3x1('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Medial/Lateral — Trials')
+    nineLinesOverlay('1_ground_force_vx', source='analog', ylabel='Kraft in N', title='Bodenreaktionskraft Medial/Lateral — All Trials')
     
     # ====================================================================
     # SEKUNDÄR-PLOTS: Hüfte + Sprunggelenk → plots_secondary/
@@ -220,9 +279,9 @@ def main():
     compareTrials3x1Monocolor('knee_angle_l',     source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Flexion Angle — Trials',     save_dir=sec)
     compareTrials3x1Monocolor('knee_rotation_l',  source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Rotation Angle — Trials',  save_dir=sec)
     compareTrials3x1Monocolor('knee_adduction_l', source='inverse_kinematic', ylabel='Winkel in °', suptitle='Knee Adduction Angle — Trials', save_dir=sec)
-    compareTrials3x1Monocolor('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='GRF Vertikal — Trials', save_dir=sec)
-    compareTrials3x1Monocolor('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='GRF Anterior/Posterior — Trials', save_dir=sec)
-    compareTrials3x1Monocolor('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='GRF Medial/Lateral — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('1_ground_force_vy', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Vertikal — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('1_ground_force_vz', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Anterior/Posterior — Trials', save_dir=sec)
+    compareTrials3x1Monocolor('1_ground_force_vx', source='analog', ylabel='Kraft in N', suptitle='Bodenreaktionskraft Medial/Lateral — Trials', save_dir=sec)
     compareTrials3x1Monocolor('hip_flexion_l_moment',   suptitle='Hip Flexion Moment — Trials',   save_dir=sec)
     compareTrials3x1Monocolor('hip_rotation_l_moment',  suptitle='Hip Rotation Moment — Trials',  save_dir=sec)
     compareTrials3x1Monocolor('hip_adduction_l_moment', suptitle='Hip Adduction Moment — Trials', save_dir=sec)
@@ -436,3 +495,4 @@ def runRaw():
 # =====================================================================
 main()       # normal (linear interpoliert) -> plots_out / plots_secondary / plots_monocolor
 runRaw()     # nicht interpoliert (Messpunkte) -> nicht-interpoliert/<unterordner>
+mostImportantPlots()

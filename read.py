@@ -304,7 +304,7 @@ def plotGait(trials, label, source='inverse_dynamic', title=None,
                             label=std_label or None)
 
     ax.set_title(title or label)
-    ax.set_xlabel('% Gangzyklus')
+    ax.set_xlabel('% Standphase')
     ax.set_ylabel(ylabel)
     ax.set_xlim(0, 100)
     if legend:

@@ -349,7 +349,7 @@ def overlayPlot(label, source='inverse_dynamic', ylabel='Moment in Nm', title=No
     plotGait(normals,  label, source=source, ax=ax, show_mean=True, only_mean=True, mean_color='black',  mean_label='Normal Gait',  std_label=None, legend=False)
     plotGait(medials,  label, source=source, ax=ax, show_mean=True, only_mean=True, mean_color='tab:cyan', mean_label='Medial Gait',  std_label=None, legend=False)
     plotGait(laterals, label, source=source, ax=ax, show_mean=True, only_mean=True, mean_color='tab:pink',  mean_label='Lateral Gait', std_label=None, legend=True)
-    ax.set(xlabel='% Gangzyklus', ylabel=ylabel, title=title)
+    ax.set(xlabel='% Standphase', ylabel=ylabel, title=title)
     saveFig(fig, title, save_dir=save_dir)
     plt.show()
 
@@ -375,7 +375,7 @@ def overlayRow(metrics, source='inverse_dynamic', ylabel='Moment in Nm',
                      show_mean=True, only_mean=True, mean_color=color,
                      mean_label=name, show_std=True, std_label=None,
                      legend=False, show_dir=False, ylabel='')
-        ax.set(title=ptitle, xlabel='% Gangzyklus')
+        ax.set(title=ptitle, xlabel='% Standphase')
         pair = directionsFor(label, source)
         if pair:
             directionLabels(ax, *pair, only_first_col=False)
@@ -397,7 +397,7 @@ def compareToOverlayPlots(label, source='inverse_dynamic', ylabel='Moment in Nm'
     plotGait(normals,  label, source=source, title='Overlay', ax=axs[3], show_mean=True, only_mean=True, mean_color='black',  mean_label='Normal Gait',  show_std=False, legend=False)
     plotGait(medials,  label, source=source, title='Overlay', ax=axs[3], show_mean=True, only_mean=True, mean_color='tab:cyan', mean_label='Medial Gait',  show_std=False, legend=False)
     plotGait(laterals, label, source=source, title='Overlay', ax=axs[3], show_mean=True, only_mean=True, mean_color='tab:pink',  mean_label='Lateral Gait', show_std=False, legend=False)
-    setAxLabels(axs, xlabel='% Gangzyklus', ylabel=ylabel, suptitle=suptitle, legend=True)
+    setAxLabels(axs, xlabel='% Standphase', ylabel=ylabel, suptitle=suptitle, legend=True)
     saveFig(fig, suptitle, save_dir=save_dir)
     plt.show()
 
@@ -425,7 +425,7 @@ def compareTrials3x1(label, source='inverse_dynamic', ylabel='Moment in Nm', sup
     ]
     for col, (trials, name) in enumerate(conditions):
         plotGait(trials, label, source=source, title=name, ax=axs[col])
-    setAxLabels(axs, xlabel='% Gangzyklus', ylabel=ylabel, suptitle=suptitle)
+    setAxLabels(axs, xlabel='% Standphase', ylabel=ylabel, suptitle=suptitle)
     saveFig(fig, suptitle, save_dir=save_dir)
     plt.show()
     
@@ -441,7 +441,7 @@ def compareTrials3x1Monocolor(label, source='inverse_dynamic', ylabel='Moment in
     for col, (trials, name) in enumerate(conditions):
         i = i + 1
         plotGait(trials, label, source=source, title=name, ax=axs[col], linestyles=['-', '--', ':'], colors=farben[i-1])
-    setAxLabels(axs, xlabel='% Gangzyklus', ylabel=ylabel, suptitle=suptitle)
+    setAxLabels(axs, xlabel='% Standphase', ylabel=ylabel, suptitle=suptitle)
     saveFig(fig, suptitle, save_dir=save_dir)
     plt.show()
 
@@ -461,7 +461,7 @@ def nineLinesOverlay(label, source='inverse_dynamic', ylabel='Moment in Nm', tit
                 ax.plot(x, y, color=color, label=trial['name'], **read.MARKER_KW)
             else:
                 ax.plot(x, y, color=color, linestyle=ls, label=trial['name'])
-    ax.set(xlabel='% Gangzyklus', ylabel=ylabel, title=title, xlim=(0, 100))
+    ax.set(xlabel='% Standphase', ylabel=ylabel, title=title, xlim=(0, 100))
     ax.legend(ncol=3, loc='best')
     ax.grid(True, alpha=0.3)
     integerTicks(ax)
